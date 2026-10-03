@@ -15,10 +15,11 @@
 	<properties>
 		<java.version>17</java.version>
 		<spring-security.version>5.6.9</spring-security.version>
-		<org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
-		<org.projectlombok.version>1.18.20</org.projectlombok.version>
+		<!-- Était 1.18.20 ; monté en version pour compatibilité JDK 21 (l'ancienne version plante sur l'API interne de javac) -->
+		<org.projectlombok.version>1.18.34</org.projectlombok.version>
 		<org.liquibase.version>4.17.2</org.liquibase.version>
-		<org.owasp.dependency-check-maven.version>7.1.1</org.owasp.dependency-check-maven.version>
+		<!-- Était 7.1.1 ; monté en version car le NIST a retiré le flux NVD JSON 1.1 utilisé par cette version (403) -->
+		<org.owasp.dependency-check-maven.version>9.2.0</org.owasp.dependency-check-maven.version>
 		<org.owasp.dependency-check-maven.suppressionFile>dependency-check-suppressions.xml</org.owasp.dependency-check-maven.suppressionFile>
 		<liquibase.config.dbhost>localhost</liquibase.config.dbhost>
 		<liquibase.config.promptOnNonLocalDatabase>true</liquibase.config.promptOnNonLocalDatabase>
@@ -107,7 +108,8 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.4.3</version>
+			<!-- Était 42.4.3 ; monté en version pour corriger CVE-2024-1597 (injection SQL via le parsing des messages d'erreur) -->
+			<version>42.7.4</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -143,20 +145,9 @@
 			<artifactId>lombok</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.mapstruct</groupId>
-			<artifactId>mapstruct</artifactId>
-			<version>${org.mapstruct.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
 			<version>1.5.12</version>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.groovy</groupId>
-			<artifactId>groovy-all</artifactId>
-			<version>3.0.9</version>
-			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -168,33 +159,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency> -->
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt</artifactId>
-			<version>0.9.1</version>
-		</dependency>
 		<!-- <dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency> -->
-
-		<!-- External API Calls -->
-		<dependency>
-			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>okhttp</artifactId>
-			<version>4.9.3</version>
-		</dependency>
-		<dependency>
-			<groupId>com.squareup.retrofit2</groupId>
-			<artifactId>retrofit</artifactId>
-			<version>2.9.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.squareup.retrofit2</groupId>
-			<artifactId>converter-jackson</artifactId>
-			<version>2.9.0</version>
-		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -297,14 +266,14 @@
 					</dependency>
 				</dependencies>
 			</plugin>
-			<!-- MAPSTRUCT && LOMBOK-->
+			<!-- LOMBOK -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
 				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
+					<!-- release (plutôt que source/target) évite l'avertissement "system modules path not set" sur les JDK récents -->
+					<release>${java.version}</release>
 					<showWarnings>true</showWarnings>
 					<compilerArgs>
 						<arg>-Werror</arg>
@@ -320,11 +289,6 @@
 							<artifactId>lombok</artifactId>
 							<version>${org.projectlombok.version}</version>
 						</path>
-						<path>
-							<groupId>org.mapstruct</groupId>
-							<artifactId>mapstruct-processor</artifactId>
-							<version>${org.mapstruct.version}</version>
-						</path>
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
@@ -332,7 +296,8 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.7</version>
+				<!-- Était 0.8.7 ; monté en version pour compatibilité JDK 21 (l'ancienne version ne sait pas instrumenter le bytecode JDK 21) -->
+				<version>0.8.12</version>
 				<executions>
 					<execution>
 						<id>coverage-initialize</id>
